@@ -1,0 +1,30 @@
+{
+    "git.ignoreLimitWarning": true,
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/.git/**": true,
+        "**/server/node_modules/**": true,
+        "**/server/dist/**": true,
+        "**/.vite/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.git": true,
+        "**/server/node_modules": true,
+        "**/server/dist": true,
+        "**/.vite": true,
+        "**/bun.lock": true,
+        "**/package-lock.json": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.vite": true,
+        "**/tsconfig.tsbuildinfo": true
+    },
+    "typescript.tsserver.maxTsServerMemory": 4096,
+    "typescript.disableAutomaticTypeAcquisition": true,
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {}
+}

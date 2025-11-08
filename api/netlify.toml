@@ -1,0 +1,18 @@
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "10"
+  MONGODB_URI = "mongodb+srv://annii9099:Annii9099@arcadeverse.buntjjm.mongodb.net/arcadeverse?retryWrites=true&w=majority&appName=ArcadeVerse"
+
+[functions]
+  node_bundler = "esbuild"
+
+# This redirect is for single-page application (SPA) routing, ensuring all paths go to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
