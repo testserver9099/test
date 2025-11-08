@@ -536,6 +536,7 @@ function calculateMilestonePoints(progress: number): { milestonePoints: number; 
 app.get('/api/calculate-points', async (req, res) => {
   try {
     const { profileUrl, isFacilitator } = req.query;
+    console.log(`Processing profile: ${profileUrl}`);
 
     if (!profileUrl || typeof profileUrl !== 'string') {
       return res.status(400).json({ error: 'Profile URL is required' });
@@ -618,6 +619,8 @@ app.get('/api/calculate-points', async (req, res) => {
         }
       }
     });
+
+    console.log(`Found ${badges.length} badges on the page.`);
 
     // Calculate points and get the breakdown
     const points = calculatePoints(badges);
@@ -728,9 +731,13 @@ app.get('/api/calculate-points', async (req, res) => {
 
       res.json(scrapedData);
     }
-  } catch (error) {
-    console.error('Error calculating points:', error);
-    res.status(500).json({ error: 'Failed to calculate points' });
+  } catch (error: any) {
+    console.error('Error calculating points:', error.message);
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    }
+    res.status(500).json({ error: 'Failed to calculate points. The scraper might be blocked or the profile page structure may have changed.' });
   }
 });
 
