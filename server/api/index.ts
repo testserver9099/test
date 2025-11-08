@@ -62,12 +62,12 @@ interface LeaderboardEntry {
 let globalLeaderboard: LeaderboardEntry[] = [];
 
 // Health check endpoint for Render
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
 // Get global stats
-app.get('/api/stats', (req, res) => {
+app.get('/stats', (req, res) => {
   res.json({
     visitors: globalVisitorCount,
     profilesAnalyzed: globalProfilesAnalyzed
@@ -75,21 +75,21 @@ app.get('/api/stats', (req, res) => {
 });
 
 // Increment visitor count
-app.post('/api/stats/visitor', (req, res) => {
+app.post('/stats/visitor', (req, res) => {
   globalVisitorCount++;
   saveStats(); // Persist to file
   res.json({ visitors: globalVisitorCount });
 });
 
 // Increment profiles analyzed count
-app.post('/api/stats/profile-analyzed', (req, res) => {
+app.post('/stats/profile-analyzed', (req, res) => {
   globalProfilesAnalyzed++;
   saveStats(); // Persist to file
   res.json({ profilesAnalyzed: globalProfilesAnalyzed });
 });
 
 // Get global leaderboard
-app.get('/api/leaderboard', (req, res) => {
+app.get('/leaderboard', (req, res) => {
   // Sort by points descending and add ranks
   const sortedLeaderboard = [...globalLeaderboard]
     .sort((a, b) => b.points - a.points)
@@ -102,7 +102,7 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 // Update or add leaderboard entry
-app.post('/api/leaderboard', (req, res) => {
+app.post('/leaderboard', (req, res) => {
   const { profileUrl, name, points, badges } = req.body;
   
   if (!profileUrl || !name || points === undefined || badges === undefined) {
@@ -533,7 +533,7 @@ function calculateMilestonePoints(progress: number): { milestonePoints: number; 
   return { milestonePoints: 0, currentMilestone: 0 };
 }
 
-app.get('/api/calculate-points', async (req, res) => {
+app.get('/calculate-points', async (req, res) => {
   try {
     const { profileUrl, isFacilitator } = req.query;
     console.log(`Processing profile: ${profileUrl}`);
