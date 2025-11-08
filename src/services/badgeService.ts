@@ -27,7 +27,7 @@ export interface CalculationResponse {
 
 class BadgeService {
   async calculatePoints(profileUrl: string, isFacilitator: boolean = false): Promise<CalculationResponse> {
-    const apiUrl = new URL('http://localhost:3001/api/calculate-points');
+    const apiUrl = new URL('/api/calculate-points', window.location.origin);
     apiUrl.searchParams.append('profileUrl', profileUrl);
     apiUrl.searchParams.append('isFacilitator', String(isFacilitator));
 

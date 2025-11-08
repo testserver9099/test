@@ -37,7 +37,7 @@ export function HomePage() {
     // Fetch global accounts analyzed count from server
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/stats');
+        const response = await fetch('/api/stats');
         const data = await response.json();
         setAccountsAnalyzed(data.profilesAnalyzed);
       } catch (error) {
@@ -57,7 +57,7 @@ export function HomePage() {
 
   const incrementAccountsAnalyzed = () => {
     // Increment global counter on server
-    fetch('http://localhost:3001/api/stats/profile-analyzed', {
+    fetch('/api/stats/profile-analyzed', {
       method: 'POST',
     })
       .then(res => res.json())
