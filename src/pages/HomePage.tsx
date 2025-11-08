@@ -5,9 +5,6 @@ import { cn } from '@/lib/utils';
 const PointsCalculator = lazy(() =>
   import('@/components/PointsCalculator').then(module => ({ default: module.PointsCalculator }))
 );
-const EnhancedPointsCalculator = lazy(() =>
-  import('@/components/EnhancedPointsCalculator').then(module => ({ default: module.EnhancedPointsCalculator }))
-);
 const FeaturesSection = lazy(() =>
   import('@/components/FeaturesSection').then(module => ({ default: module.FeaturesSection }))
 );
@@ -21,7 +18,7 @@ const ContactSection = lazy(() =>
   import('@/components/ContactSection').then(module => ({ default: module.ContactSection }))
 );
 
-const INITIAL_ACCOUNTS_ANALYZED = 119748;
+const INITIAL_ACCOUNTS_ANALYZED = 2800;
 
 // Fallback component for lazy loading
 const LazyLoadFallback = () => (
@@ -36,29 +33,49 @@ export function HomePage() {
 
   useEffect(() => {
     setIsClientForHome(true);
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('arcadeverseAccountsAnalyzed');
-      if (saved) {
-        setAccountsAnalyzed(Number.parseInt(saved, 10));
+    
+    // Fetch global accounts analyzed count from server
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/stats');
+        const data = await response.json();
+        setAccountsAnalyzed(data.profilesAnalyzed);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Fall back to localStorage or initial value
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('arcadeverseAccountsAnalyzed');
+          if (saved) {
+            setAccountsAnalyzed(Number.parseInt(saved, 10));
+          }
+        }
       }
-    }
+    };
+
+    fetchStats();
   }, []);
 
   const incrementAccountsAnalyzed = () => {
-    setAccountsAnalyzed(prevCount => {
-      const newCount = prevCount + 1;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('arcadeverseAccountsAnalyzed', newCount.toString());
-      }
-      return newCount;
-    });
+    // Increment global counter on server
+    fetch('http://localhost:3001/api/stats/profile-analyzed', {
+      method: 'POST',
+    })
+      .then(res => res.json())
+      .then(data => {
+        setAccountsAnalyzed(data.profilesAnalyzed);
+      })
+      .catch(err => {
+        console.error('Error incrementing profile count:', err);
+        // Fall back to local increment
+        setAccountsAnalyzed(prevCount => prevCount + 1);
+      });
   };
 
   return (
     <div className={cn("min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white")}>
       <HeroSection />
       <Suspense fallback={<LazyLoadFallback />}>
-        <EnhancedPointsCalculator onProfileScanned={incrementAccountsAnalyzed} />
+        <PointsCalculator onProfileScanned={incrementAccountsAnalyzed} />
         <FeaturesSection />
         <HowToJoinSection />
         <TopPerformersSection />

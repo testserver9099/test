@@ -1,12 +1,30 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { IconSearch, IconTrophy, IconFilter, IconUsers, IconUserCircle, IconStar } from '@tabler/icons-react';
+import { 
+  IconSearch, 
+  IconTrophy, 
+  IconFilter, 
+  IconUsers, 
+  IconUserCircle, 
+  IconStar, 
+  IconFlame,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconSword,
+  IconBolt,
+  IconChartLine,
+  IconActivity,
+  IconTarget,
+  IconRocket
+} from '@tabler/icons-react';
+import { useProfile } from '@/lib/profile-context';
+import { useLeaderboard } from '@/lib/leaderboard-context';
 
 // Animation variants
 const itemVariants = {
@@ -21,232 +39,118 @@ const itemVariants = {
   }),
 };
 
-// Mock leaderboard data
-const leaderboardData = [
-  {
-    id: 1,
-    name: "Michelle Chen",
-    avatarUrl: "https://ui-avatars.com/api/?name=MC&background=0D8ABC&color=fff",
-    initials: "MC",
-    points: 950,
-    badges: 24,
-    achievements: ["Google Cloud Certified", "ML Expert"],
-    rank: 1,
-    country: "United States",
-  },
-  {
-    id: 2,
-    name: "Jamal Washington",
-    avatarUrl: "https://ui-avatars.com/api/?name=JW&background=E67C13&color=fff",
-    initials: "JW",
-    points: 878,
-    badges: 22,
-    achievements: ["DevOps Specialist", "Security Expert"],
-    rank: 2,
-    country: "Canada",
-  },
-  {
-    id: 3,
-    name: "Sarah Kim",
-    avatarUrl: "https://ui-avatars.com/api/?name=SK&background=7C13E6&color=fff",
-    initials: "SK",
-    points: 845,
-    badges: 21,
-    achievements: ["Database Master", "Data Engineer"],
-    rank: 3,
-    country: "South Korea",
-  },
-  {
-    id: 4,
-    name: "Carlos Rodriguez",
-    avatarUrl: "https://ui-avatars.com/api/?name=CR&background=13E67C&color=fff",
-    initials: "CR",
-    points: 812,
-    badges: 20,
-    achievements: ["Kubernetes Expert", "Cloud Architect"],
-    rank: 4,
-    country: "Mexico",
-  },
-  {
-    id: 5,
-    name: "Aisha Patel",
-    avatarUrl: "https://ui-avatars.com/api/?name=AP&background=E61340&color=fff",
-    initials: "AP",
-    points: 798,
-    badges: 18,
-    achievements: ["Full Stack Developer", "API Specialist"],
-    rank: 5,
-    country: "India",
-  },
-  {
-    id: 6,
-    name: "John Doe",
-    avatarUrl: "https://ui-avatars.com/api/?name=JD&background=4285F4&color=fff",
-    initials: "JD",
-    points: 756,
-    badges: 19,
-    achievements: ["Networking Specialist", "Cloud Administrator"],
-    rank: 6,
-    country: "United Kingdom",
-    isCurrentUser: true,
-  },
-  {
-    id: 7,
-    name: "Emma Wilson",
-    avatarUrl: "https://ui-avatars.com/api/?name=EW&background=34A853&color=fff",
-    initials: "EW",
-    points: 732,
-    badges: 16,
-    achievements: ["Frontend Expert", "UX Specialist"],
-    rank: 7,
-    country: "Australia",
-  },
-  {
-    id: 8,
-    name: "Liu Wei",
-    avatarUrl: "https://ui-avatars.com/api/?name=LW&background=FBBC05&color=fff",
-    initials: "LW",
-    points: 711,
-    badges: 15,
-    achievements: ["Database Administrator", "Cloud Security"],
-    rank: 8,
-    country: "China",
-  },
-  {
-    id: 9,
-    name: "Gabriel Santos",
-    avatarUrl: "https://ui-avatars.com/api/?name=GS&background=EA4335&color=fff",
-    initials: "GS",
-    points: 695,
-    badges: 14,
-    achievements: ["Big Data Engineer", "ML Practitioner"],
-    rank: 9,
-    country: "Brazil",
-  },
-  {
-    id: 10,
-    name: "Olga Petrova",
-    avatarUrl: "https://ui-avatars.com/api/?name=OP&background=673AB7&color=fff",
-    initials: "OP",
-    points: 682,
-    badges: 13,
-    achievements: ["Backend Developer", "Cloud Storage Expert"],
-    rank: 10,
-    country: "Russia",
-  },
-];
-
 export function LeaderboardPage() {
-  const [activeFilter, setActiveFilter] = useState('global');
+  const { selectedProfile } = useProfile();
+  const { getLeaderboard, refreshLeaderboard } = useLeaderboard();
+  const leaderboard = getLeaderboard();
+  const [showBattleMode, setShowBattleMode] = useState(false);
+  const [selectedOpponent, setSelectedOpponent] = useState<any>(null);
+  const [showLiveActivity, setShowLiveActivity] = useState(true);
   const { ref, inView } = useInView({
     threshold: 0.1,
     triggerOnce: true
   });
 
+  const currentUserEntry = leaderboard.find(entry => entry.profileUrl === selectedProfile?.profileUrl);
+
+  // Refresh leaderboard on mount and every 30 seconds
+  useEffect(() => {
+    refreshLeaderboard();
+    const interval = setInterval(() => {
+      refreshLeaderboard();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [refreshLeaderboard]);
+
+  // Mock data for unique features
+  const userStreak = 7; // Days
+  const dailyBadgesEarned = 3;
+  const rankMovement = currentUserEntry ? (Math.random() > 0.5 ? '+2' : '-1') : '0';
+  const powerScore = currentUserEntry ? Math.round((currentUserEntry.points * 1.2) + (currentUserEntry.badges * 5) + (userStreak * 10)) : 0;
+  
+  // Live activity feed (mock data)
+  const liveActivity = [
+    { user: 'Alex M.', action: 'earned Ultimate Badge', time: '2m ago', icon: IconTrophy },
+    { user: 'Sarah K.', action: 'reached 50 badges', time: '5m ago', icon: IconStar },
+    { user: 'John D.', action: 'climbed to Rank #12', time: '8m ago', icon: IconTrendingUp },
+    { user: 'Emma W.', action: 'started a 10-day streak', time: '12m ago', icon: IconFlame },
+  ];
+
+  // Rank predictions (mock)
+  const predictNextRank = (current: number) => {
+    const movement = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+    return Math.max(1, current + movement);
+  };
+
   return (
     <div className="space-y-8" ref={ref}>
-      {/* Top section with tabs and search */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={activeFilter === 'global' ? 'default' : 'outline'}
-            size="sm"
-            className="h-9"
-            onClick={() => setActiveFilter('global')}
-          >
-            <IconTrophy size={16} className="mr-1.5" />
-            Global
-          </Button>
-          <Button
-            variant={activeFilter === 'friends' ? 'default' : 'outline'}
-            size="sm"
-            className="h-9"
-            onClick={() => setActiveFilter('friends')}
-          >
-            <IconUsers size={16} className="mr-1.5" />
-            Friends
-          </Button>
-          <Button
-            variant={activeFilter === 'country' ? 'default' : 'outline'}
-            size="sm"
-            className="h-9"
-            onClick={() => setActiveFilter('country')}
-          >
-            <IconUserCircle size={16} className="mr-1.5" />
-            My Country
-          </Button>
-        </div>
-
-        <div className="flex gap-2">
-          <div className="relative">
-            <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search users..."
-              className="pl-9 h-9 rounded-md border bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-          <Button variant="outline" size="sm" className="h-9">
-            <IconFilter size={16} className="mr-1.5" />
-            Filter
-          </Button>
-        </div>
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <IconTrophy className="text-amber-500" />
+          Leaderboard
+        </h1>
+        <p className="text-muted-foreground">
+          Real-time rankings updated automatically when profiles are analyzed
+        </p>
       </div>
 
       {/* Current user's position */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card className="google-card bg-primary/5 border-primary/30">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Your Leaderboard Position</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                    6
+      {selectedProfile && currentUserEntry && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="google-card bg-primary/5 border-primary/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Your Leaderboard Position</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      {currentUserEntry.rank}
+                    </div>
+                    <Avatar className="h-14 w-14 border-2 border-primary/20">
+                      <AvatarImage src={`https://ui-avatars.com/api/?name=${selectedProfile.name.replace(/\s/g, '+')}&background=4285F4&color=fff`} alt={selectedProfile.name} />
+                      <AvatarFallback>{selectedProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                   </div>
-                  <Avatar className="h-14 w-14 border-2 border-primary/20">
-                    <AvatarImage src="https://ui-avatars.com/api/?name=JD&background=4285F4&color=fff" alt="John Doe" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">John Doe</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs bg-primary/10">
-                      Level 5
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">United Kingdom</span>
+                  <div>
+                    <h3 className="font-bold text-lg">{selectedProfile.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs bg-primary/10">
+                        Level {Math.floor(currentUserEntry.points / 100) + 1}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-6 md:gap-12">
-                <div className="flex flex-col items-center">
-                  <span className="text-muted-foreground text-sm">Points</span>
-                  <span className="text-2xl font-bold text-primary">756</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-muted-foreground text-sm">Badges</span>
-                  <span className="text-2xl font-bold text-google-blue">19</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-muted-foreground text-sm">Rank</span>
-                  <span className="text-2xl font-bold">#6</span>
+                <div className="flex gap-6 md:gap-12">
+                  <div className="flex flex-col items-center">
+                    <span className="text-muted-foreground text-sm">Points</span>
+                      <span className="text-2xl font-bold text-primary">{currentUserEntry.points}</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-muted-foreground text-sm">Badges</span>
+                      <span className="text-2xl font-bold text-google-blue">{currentUserEntry.badges}</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-muted-foreground text-sm">Rank</span>
+                      <span className="text-2xl font-bold">#{currentUserEntry.rank}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="bg-primary/5 border-t border-primary/10 justify-end">
-            <Button size="sm" variant="secondary">View Your Profile</Button>
-          </CardFooter>
-        </Card>
-      </motion.div>
+            </CardContent>
+            <CardFooter className="bg-primary/5 border-t border-primary/10 justify-end">
+              <Button size="sm" variant="secondary">View Your Profile</Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Top 3 leaderboard section */}
       <motion.div
@@ -260,9 +164,9 @@ export function LeaderboardPage() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {leaderboardData.slice(0, 3).map((user, index) => (
+          {leaderboard.slice(0, 3).map((user, index) => (
             <motion.div
-              key={user.id}
+              key={user.profileUrl}
               custom={index}
               variants={itemVariants}
               initial="hidden"
@@ -288,48 +192,41 @@ export function LeaderboardPage() {
                         index === 1 ? 'border-google-light-blue' :
                         'border-google-red'
                       }`}>
-                        <AvatarImage src={user.avatarUrl} alt={user.name} />
-                        <AvatarFallback>{user.initials}</AvatarFallback>
+                        <AvatarImage src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=4285F4&color=fff`} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className={`absolute -bottom-2 -right-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md ${
                         index === 0 ? 'bg-google-yellow text-white' :
                         index === 1 ? 'bg-google-light-blue text-white' :
                         'bg-google-red text-white'
                       }`}>
-                        {index === 0 ? '1st' : index === 1 ? '2nd' : '3rd'}
+                        {user.rank}st
                       </div>
                     </div>
                   </div>
                   <CardTitle className="mt-3 text-lg">{user.name}</CardTitle>
-                  <CardDescription>{user.country}</CardDescription>
                 </CardHeader>
 
                 <CardContent className="text-center pt-0">
-                  <div className="flex justify-center gap-6 mb-3">
+                  <div className="flex justify-center mb-3">
                     <div className="flex flex-col">
                       <span className="text-muted-foreground text-xs">Points</span>
                       <span className="text-lg font-bold">{user.points}</span>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-muted-foreground text-xs">Badges</span>
-                      <span className="text-lg font-bold">{user.badges}</span>
-                    </div>
                   </div>
 
                   <div className="flex flex-wrap justify-center gap-2 mt-3">
-                    {user.achievements.map((achievement) => (
-                      <Badge
-                        key={`${user.id}-${achievement}`}
-                        variant="outline"
-                        className={`text-xs ${
-                          index === 0 ? 'bg-google-yellow/10' :
-                          index === 1 ? 'bg-google-light-blue/10' :
-                          'bg-google-red/10'
-                        }`}
-                      >
-                        {achievement}
-                      </Badge>
-                    ))}
+                    {/* Achievements are not part of LeaderboardEntry, using placeholder */}
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${
+                        index === 0 ? 'bg-google-yellow/10' :
+                        index === 1 ? 'bg-google-light-blue/10' :
+                        'bg-google-red/10'
+                      }`}
+                    >
+                      Achiever
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -349,22 +246,27 @@ export function LeaderboardPage() {
                 <thead>
                   <tr className="border-b bg-muted/30">
                     <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground w-[60px]">Rank</th>
+                    <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground w-[50px]">Trend</th>
                     <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground">User</th>
-                    <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground">Country</th>
+                    <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground">Momentum</th>
                     <th className="h-10 px-4 text-right text-xs font-medium text-muted-foreground">Badges</th>
                     <th className="h-10 px-4 text-right text-xs font-medium text-muted-foreground">Points</th>
                     <th className="h-10 px-4 text-right text-xs font-medium text-muted-foreground w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {leaderboardData.map((user, index) => (
+                  {leaderboard.map((user, index) => {
+                    const rankMovement = Math.random() > 0.5 ? (Math.random() > 0.5 ? 'up' : 'down') : 'same';
+                    const momentum = user.badges > 15 ? 'hot' : user.badges > 8 ? 'rising' : 'steady';
+                    
+                    return (
                     <motion.tr
-                      key={user.id}
+                      key={user.profileUrl}
                       custom={index}
                       variants={itemVariants}
                       initial="hidden"
                       animate={inView ? "visible" : "hidden"}
-                      className={`border-b hover:bg-muted/50 transition-colors ${user.isCurrentUser ? 'bg-primary/5' : ''}`}
+                      className={`border-b hover:bg-muted/50 transition-colors ${selectedProfile?.profileUrl === user.profileUrl ? 'bg-primary/5' : ''}`}
                     >
                       <td className="p-4 align-middle font-medium">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/60">
@@ -372,27 +274,62 @@ export function LeaderboardPage() {
                         </div>
                       </td>
                       <td className="p-4 align-middle">
+                        {rankMovement === 'up' && (
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500/10">
+                            <IconTrendingUp size={14} className="text-green-500" />
+                          </div>
+                        )}
+                        {rankMovement === 'down' && (
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500/10">
+                            <IconTrendingDown size={14} className="text-red-500" />
+                          </div>
+                        )}
+                        {rankMovement === 'same' && (
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-500/10">
+                            <div className="w-2 h-0.5 bg-gray-500" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4 align-middle">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                            <AvatarImage src={user.avatarUrl} alt={user.name} />
-                            <AvatarFallback>{user.initials}</AvatarFallback>
+                            <AvatarImage src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=4285F4&color=fff`} alt={user.name} />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium flex items-center">
                               {user.name}
-                              {user.isCurrentUser && (
+                              {selectedProfile?.profileUrl === user.profileUrl && (
                                 <Badge variant="outline" className="ml-2 text-xs bg-primary/10">You</Badge>
                               )}
                             </div>
                             <div className="flex gap-1 mt-1">
                               {Array.from({ length: Math.min(3, Math.floor(user.badges / 5)) }).map((_, i) => (
-                                <IconStar key={`star-${user.id}-${i}`} size={12} className="text-google-yellow" />
+                                <IconStar key={`star-${user.profileUrl}-${i}`} size={12} className="text-google-yellow" />
                               ))}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 align-middle text-sm">{user.country}</td>
+                      <td className="p-4 align-middle">
+                        {momentum === 'hot' && (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30">
+                            <IconFlame size={12} className="mr-1" />
+                            On Fire
+                          </Badge>
+                        )}
+                        {momentum === 'rising' && (
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30">
+                            <IconRocket size={12} className="mr-1" />
+                            Rising
+                          </Badge>
+                        )}
+                        {momentum === 'steady' && (
+                          <Badge variant="outline" className="bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30">
+                            Steady
+                          </Badge>
+                        )}
+                      </td>
                       <td className="p-4 align-middle text-right">{user.badges}</td>
                       <td className="p-4 align-middle text-right font-bold">
                         {user.points}
@@ -403,14 +340,15 @@ export function LeaderboardPage() {
                         </Button>
                       </td>
                     </motion.tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between border-t p-4">
             <div className="text-xs text-muted-foreground">
-              Showing 10 of 12,480 users
+              Showing {leaderboard.length} of {leaderboard.length} users
             </div>
             <div className="flex gap-1">
               <Button variant="outline" size="sm" className="h-8 w-8 p-0">
@@ -426,7 +364,7 @@ export function LeaderboardPage() {
                 ...
               </Button>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                10
+                {Math.ceil(leaderboard.length / 10)}
               </Button>
             </div>
           </CardFooter>

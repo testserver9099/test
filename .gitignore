@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build outputs
+dist/
+server/dist/
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# Environment
+.env
+.env.local
+
+# Test files
+test_*.js
+test_*.json
+output.zip
+
+# Documentation (optional, uncomment if needed)
+# work_log.md
+# README_*.md

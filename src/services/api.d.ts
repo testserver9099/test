@@ -21,7 +21,8 @@ export interface LeaderboardEntry {
 }
 
 export const api: {
-  calculatePoints(profileUrl: string): Promise<ApiResponse<{ points: number }>>;
-  getUser(profileUrl: string): Promise<ApiResponse<User>>;
-  getLeaderboard(): Promise<ApiResponse<LeaderboardEntry[]>>;
+  calculatePoints(profileUrl: string): Promise<any>;
+  calculatePointsEnhanced(profileUrl: string): Promise<any>;
+  getUser(profileUrl: string): Promise<any>;
+  getLeaderboard(): Promise<any>;
 }; 

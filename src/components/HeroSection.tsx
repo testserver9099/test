@@ -59,35 +59,25 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              <Button className="google-button bg-primary text-white hover:bg-primary/90 h-12 px-8 text-base">
+              <Button 
+                className="google-button bg-primary text-white hover:bg-primary/90 h-12 px-8 text-base"
+                onClick={() => {
+                  const calculatorSection = document.getElementById('calculator-section');
+                  calculatorSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
                 Get Started
               </Button>
-              <Button variant="outline" className="google-button h-12 px-8 text-base">
+              <Button 
+                variant="outline" 
+                className="google-button h-12 px-8 text-base"
+                onClick={() => {
+                  const howToJoinSection = document.getElementById('how-to-join-section');
+                  howToJoinSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
                 Learn More
               </Button>
-            </motion.div>
-
-            <motion.div
-              className="flex items-center space-x-6 text-sm mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.9 }}
-            >
-              <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-google-blue flex items-center justify-center text-white text-xs">
-                  1
-                </div>
-                <div className="w-8 h-8 rounded-full bg-google-red flex items-center justify-center text-white text-xs">
-                  2
-                </div>
-                <div className="w-8 h-8 rounded-full bg-google-yellow flex items-center justify-center text-white text-xs">
-                  3
-                </div>
-                <div className="w-8 h-8 rounded-full bg-google-green flex items-center justify-center text-white text-xs">
-                  4
-                </div>
-              </div>
-              <span className="text-muted-foreground">Trusted by <span className="font-medium text-foreground">15,000+</span> users</span>
             </motion.div>
           </motion.div>
 

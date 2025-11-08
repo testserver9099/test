@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { ProfileSwitcher } from '@/components/ProfileSwitcher';
+import { NotificationPanel } from '@/components/NotificationPanel';
 import { cn } from '@/lib/utils';
 import { IconMenu2, IconX } from '@tabler/icons-react';
 import { useTheme } from '@/lib/theme-provider';
@@ -83,19 +85,16 @@ export function Header() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-4"
             >
+              {/* Notification Panel */}
+              <NotificationPanel />
+              
+              {/* Theme Toggle */}
               <ThemeToggle />
-              {user && (
-                <Link to="/dashboard">
-                  <Avatar className="h-8 w-8 cursor-pointer transition-all hover:opacity-90">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>
-                      {user.name?.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              )}
+              
+              {/* Profile Switcher */}
+              <ProfileSwitcher />
             </motion.div>
           </nav>
 

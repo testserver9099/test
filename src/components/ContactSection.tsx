@@ -8,8 +8,8 @@ interface ContactSectionProps {
   accountsAnalyzedCountFromHome: number;
 }
 
-const INITIAL_VISITOR_COUNT = 15147;
-const INITIAL_ACCOUNTS_ANALYZED_DISPLAY = 119748; // Fallback for display if prop isn't ready, though prop should be safe
+const INITIAL_VISITOR_COUNT = 3000;
+const INITIAL_ACCOUNTS_ANALYZED_DISPLAY = 2800; // Fallback for display if prop isn't ready, though prop should be safe
 
 export function ContactSection({ accountsAnalyzedCountFromHome }: ContactSectionProps) {
   const { ref, inView } = useInView({
@@ -23,17 +23,29 @@ export function ContactSection({ accountsAnalyzedCountFromHome }: ContactSection
   useEffect(() => {
     setIsClient(true);
 
-    const savedCountStr = localStorage.getItem('arcadeverseVisitorCount');
-    let countToDisplay = savedCountStr ? Number.parseInt(savedCountStr, 10) : INITIAL_VISITOR_COUNT;
+    // Increment visitor count on every page load
+    const incrementVisitor = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/stats/visitor', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        setVisitorCount(data.visitors);
+      } catch (error) {
+        console.error('Error incrementing visitor count:', error);
+        // Fetch current stats as fallback
+        try {
+          const response = await fetch('http://localhost:3001/api/stats');
+          const data = await response.json();
+          setVisitorCount(data.visitors);
+        } catch (err) {
+          console.error('Error fetching stats:', err);
+          setVisitorCount(INITIAL_VISITOR_COUNT);
+        }
+      }
+    };
 
-    const sessionVisitedKey = 'arcadeverseSessionVisited';
-    if (!sessionStorage.getItem(sessionVisitedKey)) {
-      countToDisplay += 1;
-      localStorage.setItem('arcadeverseVisitorCount', countToDisplay.toString());
-      sessionStorage.setItem(sessionVisitedKey, 'true');
-    }
-    setVisitorCount(countToDisplay);
-
+    incrementVisitor();
   }, []);
 
   const socialLinks = [

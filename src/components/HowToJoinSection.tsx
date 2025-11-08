@@ -20,9 +20,11 @@ interface StepItemProps {
   numberIcon: React.ReactNode;
   delay: number;
   inView: boolean;
+  link?: string;
+  showButton?: boolean;
 }
 
-function StepItem({ step, title, description, icon, numberIcon, delay, inView }: StepItemProps) {
+function StepItem({ step, title, description, icon, numberIcon, delay, inView, link, showButton }: StepItemProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -49,13 +51,25 @@ function StepItem({ step, title, description, icon, numberIcon, delay, inView }:
       <div>
         <h3 className="text-xl font-bold mb-1">{title}</h3>
         <p className="text-muted-foreground">{description}</p>
-        {step === 1 && (
-          <Button
-            variant="link"
-            className="px-0 h-auto text-primary font-medium mt-1"
-          >
-            Get Started →
-          </Button>
+        {showButton && (
+          link ? (
+            <Button
+              variant="link"
+              className="px-0 h-auto text-primary font-medium mt-1"
+              asChild
+            >
+              <a href={link} target="_blank" rel="noopener noreferrer">
+                Get Started →
+              </a>
+            </Button>
+          ) : (
+            <Button
+              variant="link"
+              className="px-0 h-auto text-primary font-medium mt-1"
+            >
+              Get Started →
+            </Button>
+          )
         )}
       </div>
     </motion.div>
@@ -74,33 +88,40 @@ export function HowToJoinSection() {
       title: "Create Account",
       description: "Sign up on Cloud Skills Boost with a public profile.",
       icon: <IconUserPlus size={20} />,
-      numberIcon: <IconNumber1 size={14} />
+      numberIcon: <IconNumber1 size={14} />,
+      link: "https://www.skills.google/users/sign_up",
+      showButton: true
     },
     {
       step: 2,
       title: "Subscribe",
       description: "Subscribe to Google Cloud Arcade program.",
       icon: <IconCloud size={20} />,
-      numberIcon: <IconNumber2 size={14} />
+      numberIcon: <IconNumber2 size={14} />,
+      link: "https://docs.google.com/forms/d/e/1FAIpQLSd3lpkeM1LCUOm5sioRI2K8BpAENeynh-A2PBS_cI9Tyizq2w/viewform",
+      showButton: true
     },
     {
       step: 3,
       title: "Start Learning",
       description: "Begin your journey on Google Cloud Arcade.",
       icon: <IconSchool size={20} />,
-      numberIcon: <IconNumber3 size={14} />
+      numberIcon: <IconNumber3 size={14} />,
+      link: "https://go.cloudskillsboost.google/arcade",
+      showButton: true
     },
     {
       step: 4,
       title: "Track Progress",
       description: "Monitor your progress through Arcade Insider emails.",
       icon: <IconChartBar size={20} />,
-      numberIcon: <IconNumber4 size={14} />
+      numberIcon: <IconNumber4 size={14} />,
+      showButton: true
     }
   ];
 
   return (
-    <section className="py-16">
+    <section id="how-to-join-section" className="py-16">
       <div className="container">
         <div className="grid md:grid-cols-12 gap-10">
           <div className="md:col-span-5">
@@ -128,8 +149,8 @@ export function HowToJoinSection() {
                       <div className="absolute inset-0 rounded-full bg-google-blue/30" />
                       <div className="absolute inset-2 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
                         <div className="text-center">
-                          <div className="font-bold text-2xl text-google-blue">Start</div>
-                          <div className="text-xs text-muted-foreground">Your Journey</div>
+                          <div className="font-bold text-2xl text-google-blue">Begin</div>
+                          <div className="text-xs text-muted-foreground">Your Adventure</div>
                         </div>
                       </div>
                     </div>
@@ -174,6 +195,8 @@ export function HowToJoinSection() {
                   numberIcon={item.numberIcon}
                   delay={0.2 + (index * 0.1)}
                   inView={inView}
+                  link={item.link}
+                  showButton={item.showButton}
                 />
               ))}
             </div>

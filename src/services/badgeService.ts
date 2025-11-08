@@ -1,109 +1,59 @@
-import { api } from './api';
+import { BadgeType } from '../lib/calculationLogic';
 
 export interface Badge {
-  _id: string;
   name: string;
-  description: string;
-  points: number;
-  imageUrl: string;
-  createdAt: Date;
-  category: 'achievement' | 'skill' | 'special';
+  type: BadgeType;
+  earnedDate: string;
 }
 
-export interface UserBadge {
-  badgeId: string;
-  earnedAt: Date;
-  badge?: Badge; // Populated when fetching user badges
-}
-
-export interface UserPoints {
-  totalPoints: number;
-  badges: UserBadge[];
+export interface CalculationResponse {
+  points: {
+    total: number;
+    gameBadges: number;
+    triviaBadges: number;
+    skillBadges: number;
+    milestonePoints: number;
+  };
+  badges: Badge[];
+  profileData: {
+    name: string;
+    memberSince: string;
+  };
+  milestoneProgress?: {
+    currentMilestone: number;
+    progress: number;
+  };
 }
 
 class BadgeService {
-  private readonly API_BASE_URL = 'http://localhost:5001/api';
+  async calculatePoints(profileUrl: string, isFacilitator: boolean = false): Promise<CalculationResponse> {
+    const apiUrl = new URL('http://localhost:3001/api/calculate-points');
+    apiUrl.searchParams.append('profileUrl', profileUrl);
+    apiUrl.searchParams.append('isFacilitator', String(isFacilitator));
 
-  // Calculate points for a user
-  async calculateUserPoints(userId: string): Promise<number> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/users/${userId}/points`);
+      const response = await fetch(apiUrl.toString());
       if (!response.ok) {
-        throw new Error('Failed to calculate points');
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      return data.totalPoints;
+      return await response.json();
     } catch (error) {
       console.error('Error calculating points:', error);
-      throw error;
+      throw new Error('Failed to calculate points. Please ensure the server is running and the profile URL is correct.');
     }
   }
 
-  // Get all badges for a user with their details
-  async getUserBadges(userId: string): Promise<UserBadge[]> {
-    try {
-      const response = await fetch(`${this.API_BASE_URL}/users/${userId}/badges`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch user badges');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching user badges:', error);
-      throw error;
-    }
+  async getProfileBadges(profileUrl: string): Promise<Badge[]> {
+    // This function can be updated to fetch badges from the backend if needed
+    // For now, it will rely on the calculatePoints endpoint
+    const result = await this.calculatePoints(profileUrl);
+    return result.badges;
   }
 
-  // Get all available badges
-  async getAllBadges(): Promise<Badge[]> {
-    try {
-      const response = await fetch(`${this.API_BASE_URL}/badges`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch badges');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching badges:', error);
-      throw error;
-    }
-  }
-
-  // Award a badge to a user
-  async awardBadge(userId: string, badgeId: string): Promise<UserBadge> {
-    try {
-      const response = await fetch(`${this.API_BASE_URL}/users/${userId}/badges`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ badgeId }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to award badge');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error awarding badge:', error);
-      throw error;
-    }
-  }
-
-  // Get user's complete points summary including badges
-  async getUserPointsSummary(userId: string): Promise<UserPoints> {
-    try {
-      const [totalPoints, badges] = await Promise.all([
-        this.calculateUserPoints(userId),
-        this.getUserBadges(userId),
-      ]);
-
-      return {
-        totalPoints,
-        badges,
-      };
-    } catch (error) {
-      console.error('Error getting user points summary:', error);
-      throw error;
-    }
+  async getProfilePointsSummary(profileUrl: string, isFacilitator: boolean = false): Promise<CalculationResponse> {
+    return this.calculatePoints(profileUrl, isFacilitator);
   }
 }
 
-export const badgeService = new BadgeService(); 
+export const badgeService = new BadgeService();

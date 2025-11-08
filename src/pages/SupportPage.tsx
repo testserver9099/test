@@ -44,7 +44,7 @@ const faqItems: FAQ[] = [
 
 export function SupportPage() {
   const { user } = useAuth();
-  const { success, error } = useNotification();
+  const { success, error, notifySupportMessage } = useNotification();
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -95,6 +95,14 @@ export function SupportPage() {
       success("Your support request has been submitted", {
         description: "We'll get back to you as soon as possible."
       });
+
+      // Simulate a support team response after 3 seconds (for demo purposes)
+      setTimeout(() => {
+        notifySupportMessage(
+          "Thank you for contacting us! We've received your request and will respond within 24 hours.",
+          "Support Team"
+        );
+      }, 3000);
 
       // Reset form
       setFormData(prev => ({
